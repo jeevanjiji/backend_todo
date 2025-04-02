@@ -1,28 +1,25 @@
 const express = require("express");
-const Task = require("../models/Task"); // Ensure this model exists
-const router = express.Router();
+const mongoose = require("mongoose");
+const cors = require("cors");
+const taskRoutes = require("./routes/taskRoutes"); // Ensure this file exists
 
-// Get all tasks
-router.get("/", async (req, res) => {
-  const tasks = await Task.find();
-  res.json(tasks);
-});
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Add a task
-router.post("/", async (req, res) => {
-  try {
-    const newTask = new Task({ text: req.body.text });
-    await newTask.save();
-    res.status(201).json(newTask);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to save task" });
-  }
-});
+// Middleware
+app.use(cors()); // Allows frontend access
+app.use(express.json()); // Parses JSON request body
 
-// Delete a task
-router.delete("/:id", async (req, res) => {
-  await Task.findByIdAndDelete(req.params.id);
-  res.status(204).send();
-});
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI || "your-mongodb-url-here", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-module.exports = router;
+// Routes
+app.use("/api/tasks", taskRoutes);
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
