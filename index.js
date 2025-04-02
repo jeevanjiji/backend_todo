@@ -10,10 +10,15 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://jeevanjiji:pQL5YvXq5Ns8tBf@cluster0.xblsw.mongodb.net/todo?retryWrites=true&w=majority";
+
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(MONGODB_URI)
   .then(() => console.log("Connected to MongoDB"))
-  .catch(err => console.error("Database connection error:", err));
+  .catch(err => {
+    console.error("Database connection error:", err);
+    console.log("Attempting to connect with URI:", MONGODB_URI);
+  });
 
 // Root route
 app.get("/", (req, res) => {
