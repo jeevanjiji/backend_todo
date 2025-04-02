@@ -1,34 +1,28 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const taskRoutes = require("./routes/taskRoutes");
+const Task = require("../models/Task"); // Ensure this model exists
+const router = express.Router();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(express.json());
-
-// Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://jeevanjiji:pQL5YvXq5Ns8tBf@cluster0.xblsw.mongodb.net/todo?retryWrites=true&w=majority";
-
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(err => {
-    console.error("Database connection error:", err);
-    console.log("Attempting to connect with URI:", MONGODB_URI);
-  });
-
-// Root route
-app.get("/", (req, res) => {
-  res.json({ message: "Todo API is running" });
+// Get all tasks
+router.get("/", async (req, res) => {
+  const tasks = await Task.find();
+  res.json(tasks);
 });
 
-// Use task routes
-app.use("/api/tasks", taskRoutes);
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Add a task
+router.post("/", async (req, res) => {
+  try {
+    const newTask = new Task({ text: req.body.text });
+    await newTask.save();
+    res.status(201).json(newTask);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save task" });
+  }
 });
+
+// Delete a task
+router.delete("/:id", async (req, res) => {
+  await Task.findByIdAndDelete(req.params.id);
+  res.status(204).send();
+});
+
+module.exports = router;
